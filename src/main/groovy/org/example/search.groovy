@@ -1,67 +1,65 @@
 package org.example
 
-import org.apache.http.auth.AuthScope
-import org.apache.http.auth.NTCredentials
-import org.apache.http.impl.client.CloseableHttpClient
-import org.apache.http.impl.client.HttpClients
-import org.apache.http.client.methods.HttpPost
-import org.apache.http.client.methods.HttpGet
-import org.apache.http.entity.StringEntity
-import org.apache.http.util.EntityUtils
-import org.apache.http.impl.client.BasicCredentialsProvider
-import org.apache.http.client.CredentialsProvider
-import org.apache.http.impl.client.BasicCookieStore
-import org.apache.http.client.CookieStore
-import org.apache.http.HttpResponse
+import org.htmlunit.WebClient
+import org.htmlunit.BrowserVersion
+import org.htmlunit.html.HtmlPage
+import org.htmlunit.ScriptResult
+import org.htmlunit.util.Cookie
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
+
 
 class Search3DSpace {
     static def baseurl = "https://3dx.fr/"
     static def user = "user"
     static def pass = "pass"
     static def securityContext = "ctx::xxx"
-    static CookieStore cookieStore = new BasicCookieStore()
+    static WebClient webClient = new WebClient(BrowserVersion.BEST_SUPPORTED)
 
-    static CloseableHttpClient createNtlmClient(String user, String pass, String workstation = null, String domain = null) {
-        CredentialsProvider credsProvider = new BasicCredentialsProvider()
-        credsProvider.setCredentials(
-            AuthScope.ANY,
-            new NTCredentials(user, pass, workstation, domain)
-        )
-        return HttpClients.custom()
-            .setDefaultCredentialsProvider(credsProvider)
-            .setDefaultCookieStore(cookieStore)
-            .setRedirectStrategy(new org.apache.http.impl.client.LaxRedirectStrategy())
-            .build()
+    static String doXmlHttpRequest(String method, String url, Map<String, String> headers, def body = null) {
+        webClient.options.setThrowExceptionOnScriptError(false)
+        webClient.options.setCssEnabled(false)
+        String js = '''
+            var done = false;
+            var result = null;
+            var xhr = new XMLHttpRequest();
+            xhr.open("''' + method + '''", "''' + url + '''", false);
+        '''
+        if (headers) {
+            headers.each { k, v ->
+                js += 'xhr.setRequestHeader("' + k + '", "' + v + '");\n'
+            }
+        }
+        js += '''
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4) {
+                    done = true;
+                    result = xhr.responseText;
+                }
+            };
+        '''
+        if (body != null) {
+            String jsonBody = (body instanceof String) ? body : JsonOutput.toJson(body)
+            js += 'xhr.send(JSON.stringify(' + JsonOutput.toJson(body) + '));\n'
+        } else {
+            js += 'xhr.send();\n'
+        }
+        js += '''
+            result;
+        '''
+        HtmlPage page = webClient.getPage(baseurl)
+        ScriptResult scriptResult = page.executeJavaScript(js)
+        return scriptResult.getJavaScriptResult()?.toString()
     }
 
     static String doPost(String path, Map<String, String> headers, def body) {
         String url = baseurl + path
-        CloseableHttpClient httpclient = createNtlmClient(user, pass)
-        try {
-            HttpPost httpPost = new HttpPost(url)
-            headers?.each { k, v -> httpPost.setHeader(k, v) }
-            String jsonBody = (body instanceof String) ? body : JsonOutput.toJson(body)
-            httpPost.setEntity(new StringEntity(jsonBody, "UTF-8"))
-            HttpResponse response = httpclient.execute(httpPost)
-            return EntityUtils.toString(response.getEntity(), "UTF-8")
-        } finally {
-            httpclient.close()
-        }
+        return doXmlHttpRequest("POST", url, headers, body)
     }
 
     static String doGet(String path, Map<String, String> headers) {
         String url = baseurl + path
-        CloseableHttpClient httpclient = createNtlmClient(user, pass)
-        try {
-            HttpGet httpGet = new HttpGet(url)
-            headers?.each { k, v -> httpGet.setHeader(k, v) }
-            HttpResponse response = httpclient.execute(httpGet)
-            return EntityUtils.toString(response.getEntity(), "UTF-8")
-        } finally {
-            httpclient.close()
-        }
+        return doXmlHttpRequest("GET", url, headers)
     }
 
     static List fetchResourceIds(String queryString) {
