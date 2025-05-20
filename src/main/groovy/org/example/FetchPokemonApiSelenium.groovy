@@ -13,7 +13,9 @@ class FetchPokemonApiSelenium {
         // Optional: configure Edge options
         EdgeOptions options = new EdgeOptions()
         //options.addArguments("--headless=new") // Run headless (no UI)
-
+        options.addArguments("--headless=new")
+        options.addArguments("--disable-gpu")
+        options.addArguments("--window-size=1920,1080")
         WebDriver driver = new EdgeDriver(options)
         try {
             // Navigate to a blank page to execute JS fetch
@@ -26,15 +28,16 @@ class FetchPokemonApiSelenium {
                   .then(data => JSON.stringify(data));
             """
             // Execute the JS asynchronously and get the JSON string
-            String json = (String) ((org.openqa.selenium.JavascriptExecutor) driver).executeAsyncScript(
-                "var callback = arguments[arguments.length - 1];" +
-                "fetch('https://pokeapi.co/api/v2/pokemon/pikachu')" +
-                ".then(response => response.json())" +
-                ".then(data => callback(JSON.stringify(data)))" +
-                ".catch(err => callback(JSON.stringify({error: err.message})));"
+            String json = driver.executeAsyncScript("""
+                var callback = arguments[arguments.length - 1];
+                fetch('https://pokeapi.co/api/v2/pokemon/pikachu')
+                .then(response => response.json())
+                .then(data => callback(JSON.stringify(data)))
+                .catch(err => callback(JSON.stringify({error: err.message})));
+                """
             )
 
-            println "Raw JSON: $json"
+            //println "Raw JSON: $json"
 
             // Optionally, parse the JSON (requires groovy.json.JsonSlurper)
             def parsed = new groovy.json.JsonSlurper().parseText(json)
