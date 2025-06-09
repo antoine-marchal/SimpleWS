@@ -29,14 +29,14 @@ It allows you to easily run Groovy scripts from the command line via a single ex
    ```sh
    mvn clean package
    ```
-   The generated JAR will be in the `target` folder (e.g., `simplews-1.0-jar-with-dependencies.jar`).
+   The generated JAR will be in the `target` folder (e.g., `groovyExec-1.0-jar-with-dependencies.jar`).
 
 ## Usage
 
 ### Simple execution of a Groovy script
 
 ```sh
-java -jar target/simplews-1.0-jar-with-dependencies.jar path/to/script.groovy [externalJarsFolder] [args...]
+java -jar groovyExec.jar path/to/script.groovy [externalJarsFolder] [args...]
 ```
 
 - If `[externalJarsFolder]` is provided, all .jar files in this folder will be added to the Groovy classpath.
@@ -47,17 +47,17 @@ java -jar target/simplews-1.0-jar-with-dependencies.jar path/to/script.groovy [e
 
 **Use JARs in the default lib folder:**
 ```sh
-java -jar .\simplews.jar .\script.groovy
+java -jar .\groovyExec.jar .\script.groovy
 ```
 
 **Specify a folder for additional JARs:**
 ```sh
-java -jar .\simplews.jar .\script.groovy lib http://google.com
+java -jar .\groovyExec.jar .\script.groovy lib http://google.com
 ```
 
 If no script is provided, a help message will be displayed:
 ```
-Usage: java -jar target/simplews-1.0-jar-with-dependencies.jar <script.groovy> [externalJarsFolder] [args...]
+Usage: java -jar groovyExec.jar <script.groovy> [externalJarsFolder] [args...]
 ```
 
 ## Example Script
