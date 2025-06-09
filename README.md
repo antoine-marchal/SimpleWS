@@ -47,12 +47,12 @@ java -jar target/simplews-1.0-jar-with-dependencies.jar path/to/script.groovy [e
 
 **Use JARs in the default lib folder:**
 ```sh
-java -jar target/simplews-1.0-jar-with-dependencies.jar myscript.groovy arg1 arg2
+java -jar .\simplews.jar .\script.groovy
 ```
 
 **Specify a folder for additional JARs:**
 ```sh
-java -jar target/simplews-1.0-jar-with-dependencies.jar myscript.groovy external_libs arg1 arg2
+java -jar .\simplews.jar .\script.groovy lib http://google.com
 ```
 
 If no script is provided, a help message will be displayed:
