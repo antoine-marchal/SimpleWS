@@ -19,6 +19,11 @@
             <artifactId>groovy</artifactId>
             <version>3.0.21</version>
         </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-json</artifactId>
+            <version>3.0.21</version>
+        </dependency>
     </dependencies>
 
     <build>
